@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='ws-notify',
-    version='1.0',
+    version='1.1',
     description='Notification server',
     long_description=open('README.rst').read(),
     author="GoTLiuM InSPiRiT",
@@ -10,7 +10,7 @@ setup(
     url='https://github.com/LPgenerator/lpg-notify-ws/',
     packages=find_packages(exclude=['demo']),
     include_package_data=True,
-    package_data={'secureauth': [
+    package_data={'ws-notify': [
         'templates/*.html',
         'static/*.js'
     ]},
