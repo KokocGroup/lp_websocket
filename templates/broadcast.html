@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Server Side</title>
+    <script type="text/javascript"
+            src="http://yandex.st/jquery/1.8.3/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/broadcast.js"></script>
+</head>
+<body>
+<table>
+    <tr>
+        <td>
+            User ID:
+            <input id="user" value="1">
+        </td>
+        <td>
+            Message:
+            <input id="message" value='{"path": "pkg.test.3", "data": "Hello, World!", "title": "hello"}'>
+        </td>
+        <td>
+            <input type="submit" value="Send notification" id="send">
+        </td>
+        <td id="status"></td>
+    </tr>
+</table>
+</body>
+</html>

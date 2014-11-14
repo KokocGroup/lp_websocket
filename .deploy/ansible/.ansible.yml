@@ -1,0 +1,106 @@
+---
+- hosts: all
+
+  tasks:
+
+    - name: Packages->uninstall default packages
+      apt: pkg={{ item }} state=absent purge=yes force=yes
+      sudo: yes
+      ignore_errors: True
+      with_items:
+        - apache2
+        - sendmail
+
+    - name: Packages->updating cache
+      sudo: yes
+      apt: update_cache=yes cache_valid_time=604800
+
+    - name: Redis->ppa repository
+      sudo: yes
+      apt_repository: repo='ppa:chris-lea/redis-server'
+
+    - name: Packages->installing
+      apt: pkg={{ item }}
+      sudo: yes
+      with_items:
+        - git-core
+        - ngrep
+        - screen
+        - bash-completion
+        - htop
+        - gcc
+        - logtop
+        - python-virtualenv
+        - ipython
+        - supervisor
+        - redis-server
+
+    - name: SSH->make dir
+      action: file path=/home/vagrant/.ssh/ state=directory mode=0700 owner=vagrant group=vagrant
+
+    - name: SSH->coping key
+      copy: src=.ssh/vagrant dest=/home/vagrant/.ssh/id_rsa mode=0600 owner=vagrant group=vagrant
+
+    - name: SSH->known hosts
+      copy: src=.ssh/known_hosts dest=/home/vagrant/.ssh/known_hosts mode=0600 owner=vagrant group=vagrant
+
+    - name: Init->coping
+      sudo: yes
+      copy: src=lpg-updater.sh dest=/etc/init.d/lpg-updater mode=0777 owner=root group=root
+
+    - name: Init->enabled
+      sudo: yes
+      service: name=lpg-updater enabled=true runlevel=default state=stopped
+
+    - name: Freetype->symbolic link
+      sudo: yes
+      shell: ln -sf /usr/include/freetype2 /usr/include/freetype
+
+    - name: Project->upgrade the virtualenv
+      pip: requirements=/vagrant/requirements.txt virtualenv=/home/vagrant/lpg-env
+
+    - name: Supervisor->coping
+      sudo: yes
+      copy: src=supervisor.conf dest=/etc/supervisor/conf.d/lpg.conf mode=0644 owner=root group=root
+
+    - name: Supervisor->enabled
+      sudo: yes
+      service: name=supervisor enabled=true runlevel=default state=restarted
+
+    - name: timezone
+      sudo: yes
+      shell: ln -sf /usr/share/zoneinfo/Europe/Moscow /etc/localtime
+
+    - name: lang->env
+      sudo: yes
+      copy: src=environment.conf  dest=/etc/environment
+
+    - name: lang->gen
+      sudo: yes
+      shell: locale-gen en_US.UTF-8
+
+    - name: lang->update
+      sudo: yes
+      shell: update-locale LANG=en_US.UTF-8
+
+    - name: lang->gen
+      sudo: yes
+      shell: dpkg-reconfigure locales
+
+    - name: Bash->store rc into vagrant home
+      copy: src=bashrc.sh dest=/home/vagrant/.bashrc
+
+    - name: Bash->store rc into root
+      sudo: yes
+      copy: src=bashrc.sh dest=/root/.bashrc
+
+    - name: Screen->store rc into vagrant home
+      copy: src=/vagrant/.deploy/.screenrc.conf dest=/home/vagrant/.screenrc
+
+    - name: Screen->store rc into root
+      sudo: yes
+      copy: src=/vagrant/.deploy/.screenrc.conf dest=/root/.screenrc
+
+    - name: Bash->completion
+      sudo: yes
+      shell: ln -sf /etc/bash_completion.d/git-prompt /etc/bash_completion.d/git

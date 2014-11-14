@@ -1,0 +1,195 @@
+#!/usr/bin/env python
+#!-*- coding: utf-8 -*-
+
+import logging
+import json
+import re
+
+import tornado.web
+import tornado.ioloop
+import tornado.websocket
+from tornado.options import define, options, parse_command_line
+
+from raven.contrib.tornado import AsyncSentryClient
+from raven.contrib.tornado import SentryMixin
+
+import tornadoredis
+
+
+define("port", default=8888, help="run on the given port", type=int)
+define("debug", default=False, help="run in debug mode")
+
+logger = logging.getLogger('ws_notify')
+handler = logging.FileHandler('/tmp/ws-notify.log')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+
+
+ALLOWED_FILTER = r'^[a-zA-Z.*0-9_]+$'
+ALLOWED_PATH = r'^[a-zA-Z.0-9_]+$'
+
+c = tornadoredis.Client()
+c.connect()
+
+
+class IndexHandler(SentryMixin, tornado.web.RequestHandler):
+    def get(self):
+        self.render('templates/index.html')
+
+
+class NotificationHandler(SentryMixin, tornado.web.RequestHandler):
+    def get(self):
+        self.render('templates/notification.html')
+
+
+class BroadcastHandler(SentryMixin, tornado.web.RequestHandler):
+    def get(self):
+        self.render('templates/broadcast.html')
+
+
+class BroadcastMessageHandler(SentryMixin, tornado.web.RequestHandler):
+    def post(self):
+        message = self.get_argument('message')
+        user_id = str(self.get_argument('user'))
+
+        if user_id.isdigit():
+            try:
+                data = json.loads(message)
+                if isinstance(data, dict) and data.get('path'):
+                    if re.match(ALLOWED_PATH, data.get('path')):
+                        c.publish(user_id, message)
+                        self.set_header('Content-Type', 'text/plain')
+                        self.write('OK')
+                        return
+            except (ValueError, TypeError):
+                pass
+        self.write('ERROR')
+
+    def check_origin(self, origin):
+        return True
+
+
+class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
+    def __init__(self, *args, **kwargs):
+        self.client = None
+        self.is_authorized = True
+        self.subscribe_id = None
+        self.subscribe_filters = ['notify\.(.*?)']
+        self.subscribe_filters_str = ''
+        self.allowed_methods = [
+            'authorize', 'subscribe', 'unsubscribe', 'subscriptions']
+
+        super(WSHandler, self).__init__(*args, **kwargs)
+
+    @staticmethod
+    def _replace_rule(rule):
+        #rule = ''.join(re.findall(r'[a-zA-Z.*0-9_]', rule))
+        rule = rule.replace('*', '([a-zA-Z0-9_]+)')
+        rule = rule.replace('.', '\.')
+        return rule
+
+    def _compile_rules(self):
+        combined = '|'.join(self.subscribe_filters)
+        self.subscribe_filters_str = '^%s$' % combined
+
+    def _check_auth(self):
+        if not self.is_authorized:
+            self.close(403, 'Not authorized!')
+
+    def authorize(self, data):
+        if data.get('password') == 12345:
+            if data.get('login'):
+                self.subscribe_id = data.get('login')
+                self.is_authorized = True
+                self.listen()
+                return
+
+        logger.error('Authorization error')
+        self.close()
+
+    def subscribe(self, data):
+        for rule in data.get('data', []):
+            if rule and re.match(ALLOWED_FILTER, rule):
+                rule = self._replace_rule(rule)
+                if rule and rule not in self.subscribe_filters:
+                    self.subscribe_filters.append(rule)
+        self._compile_rules()
+
+    def unsubscribe(self, filters):
+        for rule in filters.get('data', []) or []:
+            if rule and re.match(ALLOWED_FILTER, rule):
+                rule = self._replace_rule(rule)
+                if rule and rule in self.subscribe_filters:
+                    self.subscribe_filters.remove(rule)
+        self._compile_rules()
+
+    def subscriptions(self, _):
+        self.write_message(self.subscribe_filters_str)
+
+    @tornado.gen.engine
+    def listen(self):
+        self.client = tornadoredis.Client()
+        self.client.connect()
+        yield tornado.gen.Task(self.client.subscribe, str(self.subscribe_id))
+        self.client.listen(self.backend_message)
+
+    def dispatch_backend_message(self, json_msg):
+        try:
+            data = json.loads(json_msg)
+            path = data.get('path')
+            if re.match(self.subscribe_filters_str, path):
+                self.write_message(json_msg)
+        except Exception, e:
+            logger.exception(e)
+
+    def backend_message(self, message):
+        if message.kind == 'message':
+            self.dispatch_backend_message(message.body)
+        if message.kind == 'disconnect':
+            self.close()
+
+    def on_message(self, message):
+        message = json.loads(message)
+        action = message.get('action')
+        if action and action in self.allowed_methods:
+            if action != 'authorize':
+                self._check_auth()
+            getattr(self, action)(message)
+
+    def on_close(self, message=None):
+        if self.client and self.client.subscribed:
+            self.client.unsubscribe(str(self.subscribe_id))
+        if self.client:
+            self.client.disconnect()
+
+    def check_origin(self, origin):
+        return True
+
+
+class Application(tornado.web.Application):
+    def __init__(self):
+        self.sentry_client = AsyncSentryClient(
+            'https://7580dade6193484aa40a8e9b2310d33c:'
+            'b902376279f5481eb3a0420d669b4f9b@app.getsentry.com/33177'
+        )
+        handlers = (
+            (r'/', IndexHandler),
+            (r'/notification/', NotificationHandler),
+            (r'/broadcast/', BroadcastHandler),
+            (r'/broadcast/msg/', BroadcastMessageHandler),
+            (r'/ws/', WSHandler),
+            (
+                r'/static/(.*)', tornado.web.StaticFileHandler,
+                {'path': 'static/'}
+            ),
+        )
+        tornado.web.Application.__init__(self, handlers)
+
+
+if __name__ == '__main__':
+    parse_command_line()
+    application = Application()
+    application.listen(options.port)
+    tornado.ioloop.IOLoop.instance().start()
