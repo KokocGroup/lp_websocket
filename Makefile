@@ -5,7 +5,7 @@ ENV=`basename "$PWD"`
 .PHONY: run
 # target: run - Run Django development server
 run: kill_server
-	@python -m tornado.autoreload ws-notify.py --logging=debug
+	@python -m tornado.autoreload ws-notify.py --logging=debug --debug=true
 
 .PHONY: help
 # target: sync - sync with remote server

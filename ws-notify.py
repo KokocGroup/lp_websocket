@@ -44,6 +44,11 @@ class NotificationHandler(SentryMixin, tornado.web.RequestHandler):
         self.render('templates/notification.html')
 
 
+class AllNotificationHandler(SentryMixin, tornado.web.RequestHandler):
+    def get(self):
+        self.render('templates/all_notification.html')
+
+
 class BroadcastHandler(SentryMixin, tornado.web.RequestHandler):
     def get(self):
         self.render('templates/broadcast.html')
@@ -168,6 +173,33 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
         return True
 
 
+class WSAllHandler(SentryMixin, tornado.websocket.WebSocketHandler):
+    def __init__(self, *args, **kwargs):
+        self.client = None
+        super(WSAllHandler, self).__init__(*args, **kwargs)
+        self.listen()
+
+    @tornado.gen.engine
+    def listen(self):
+        self.client = tornadoredis.Client()
+        self.client.connect()
+        yield tornado.gen.Task(self.client.psubscribe, '*')
+        self.client.listen(self.backend_message)
+
+    def backend_message(self, message):
+        if message.kind == 'pmessage':
+            self.write_message(message.body)
+
+    def on_close(self, message=None):
+        if self.client and self.client.subscribed:
+            self.client.punsubscribe('*')
+        if self.client:
+            self.client.disconnect()
+
+    def check_origin(self, origin):
+        return True
+
+
 class Application(tornado.web.Application):
     def __init__(self):
         self.sentry_client = AsyncSentryClient(
@@ -185,6 +217,11 @@ class Application(tornado.web.Application):
                 {'path': 'static/'}
             ),
         )
+        if options.debug is True:
+            handlers += (
+                (r'/events/', AllNotificationHandler),
+                (r'/ws/events/', WSAllHandler),
+            )
         tornado.web.Application.__init__(self, handlers)
 
 
