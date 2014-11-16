@@ -13,8 +13,11 @@ import (
 const (
 	REDIS_HOST  = "127.0.0.1"
 	REDIS_PORT  = 6379
+	REDIS_PASS = ""
+	REDIS_DB = 0
+
 	MAX_RETRIES = 3
-	RETRY_AFTER = 60
+	RETRY_AFTER = 600
 )
 
 func sendEvent(event_json []byte, retries int8) {
@@ -22,6 +25,7 @@ func sendEvent(event_json []byte, retries int8) {
 
 	if err := json.Unmarshal(event_json, &event); err != nil {
 		fmt.Println("JSON Error: ", err)
+		return
 	}
 
 	eventUrl := event["url"]
@@ -53,7 +57,10 @@ func sendEvent(event_json []byte, retries int8) {
 
 func main() {
 server:
-	spec := redis.DefaultSpec().Host(REDIS_HOST).Port(REDIS_PORT) //.Db(db).Password(password)
+	spec := redis.DefaultSpec()
+	spec.Host(REDIS_HOST).Port(REDIS_PORT)
+	spec.Db(REDIS_DB).Password(REDIS_PASS)
+
 	client, e := redis.NewSynchClientWithSpec(spec)
 	if e != nil {
 		fmt.Println("Error creating client for worker: ", e)
@@ -76,7 +83,5 @@ server:
 		}
 
 		go sendEvent(res[1], 0)
-
-		time.Sleep(1 * time.Millisecond)
 	}
 }
