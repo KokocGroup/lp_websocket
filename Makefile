@@ -86,10 +86,15 @@ pull-from-reset: clean
 send-event:
 	@redis-cli RPUSH events '{"url": "http://127.0.0.1:8080/", "message": "Hello, World!", "api_key": "AFAAFASDVZXV"}'
 
+.PHONY: send-events
+# target: send-events - Send events
+send-events:
+	@python helpers/send-events.py
+
 .PHONY: echo-server
 # target: echo-server - POST echo event server
 echo-server:
-	@python echo.py
+	@python helpers/echo-server.py
 
 .PHONY: help
 # target: help - Display callable targets
