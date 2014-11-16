@@ -34,6 +34,7 @@
         - ipython
         - supervisor
         - redis-server
+        - golang
 
     - name: SSH->make dir
       action: file path=/home/vagrant/.ssh/ state=directory mode=0700 owner=vagrant group=vagrant

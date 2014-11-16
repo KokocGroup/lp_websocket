@@ -11,12 +11,11 @@ import (
 )
 
 const (
-	REDIS_HOST = "127.0.0.1"
-	REDIS_PORT = 6379
+	REDIS_HOST  = "127.0.0.1"
+	REDIS_PORT  = 6379
 	MAX_RETRIES = 3
 	RETRY_AFTER = 60
 )
-
 
 func sendEvent(event_json []byte, retries int8) {
 	var event map[string]interface{}

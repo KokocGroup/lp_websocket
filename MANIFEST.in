@@ -1,1 +1,1 @@
-recursive-include secureauth *.py *.html *.js
+recursive-include secureauth *.py *.html *.js *.go
