@@ -33,6 +33,9 @@ pip install -r requirements.txt
 cp .deploy/nginx/notify.lpgenerator.ru.conf /etc/nginx/sites-available/
 cp .deploy/nginx/nginx.conf /etc/nginx/
 cp .deploy/supervisor/notify.lpgenerator.ru.conf /etc/supervisor/conf.d/
+cp .deploy/sys/sysctl.conf /etc/sysctl.conf
+cp .deploy/sys/limits.conf /etc/security/limits.conf
+sysctl -p
 
 ln -sf /etc/nginx/sites-available/notify.lpgenerator.ru.conf /etc/nginx/sites-enabled/
 rm /etc/nginx/sites-enabled/default
