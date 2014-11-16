@@ -63,8 +63,11 @@ server:
 
 	defer client.Quit()
 
+	var res [][]byte
+	var err redis.Error
+
 	for {
-		res, err := client.Brpop("events", 0)
+		res, err = client.Brpop("events", 0)
 
 		if err != nil {
 			fmt.Println("Error: ", err)
