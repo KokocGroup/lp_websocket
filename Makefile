@@ -3,9 +3,14 @@ BRANCH=`git rev-parse --abbrev-ref HEAD`
 ENV=`basename "$PWD"`
 
 .PHONY: run
-# target: run - Run Django development server
+# target: run - Run Tornado development server
 run: kill_server
 	@python -m tornado.autoreload ws-notify.py --logging=debug --debug=true
+
+.PHONY: run-events
+# target: run-events - Run Go development server
+run-events: kill_server
+	@go run events.go
 
 .PHONY: help
 # target: sync - sync with remote server
@@ -68,6 +73,16 @@ pull-from-reset: clean
 	@git reset --hard `git log --pretty=format:"%H" master.. | tail -1`
 	@git pull origin `git rev-parse --abbrev-ref HEAD` -f
 	@test -f touch.reload && touch touch.reload || true
+
+.PHONY: send-event
+# target: send-event - Send event
+send-event:
+	@redis-cli RPUSH events '{"url": "http://127.0.0.1:8080/", "message": "Hello, World!", "api_key": "AFAAFASDVZXV"}'
+
+.PHONY: echo-server
+# target: echo-server - POST echo event server
+echo-server:
+	@python echo.py
 
 .PHONY: help
 # target: help - Display callable targets

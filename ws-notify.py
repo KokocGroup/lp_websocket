@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #!-*- coding: utf-8 -*-
 
+__author__ = 'gotlium'
+
 import logging
 import json
 import re
@@ -187,7 +189,7 @@ class WSAllHandler(SentryMixin, tornado.websocket.WebSocketHandler):
         self.client.listen(self.backend_message)
 
     def backend_message(self, message):
-        if message.kind == 'pmessage':
+        if message.kind == 'pmessage' and '"path"' in message.body:
             self.write_message(message.body)
 
     def on_close(self, message=None):
