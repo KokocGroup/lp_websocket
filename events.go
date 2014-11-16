@@ -3,23 +3,29 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
+	"os/signal"
 	"net/http"
 	"net/url"
+	"syscall"
 	"redis"
+	"sync"
 	"time"
 	"fmt"
+	"os"
 )
 
 const (
-	REDIS_HOST  = "127.0.0.1"
-	REDIS_PORT  = 6379
+	REDIS_HOST = "127.0.0.1"
+	REDIS_PORT = 6379
 	REDIS_PASS = ""
-	REDIS_DB = 0
+	REDIS_DB   = 0
 
-	QUEUE_NAME = "events"
+	QUEUE_NAME  = "events"
 	RETRY_AFTER = 180
 	MAX_RETRIES = 3
 )
+
+var wg sync.WaitGroup
 
 func sendEvent(event_json []byte) {
 	var event map[string]interface{}
@@ -27,6 +33,7 @@ func sendEvent(event_json []byte) {
 
 	if err := json.Unmarshal(event_json, &event); err != nil {
 		fmt.Println("JSON Error: ", err)
+		wg.Done()
 		return
 	}
 
@@ -39,7 +46,8 @@ func sendEvent(event_json []byte) {
 		params := url.Values{}
 		params.Add("apiKey", eventApiKey.(string))
 		params.Add("event", eventMessage.(string))
-send:
+
+	send:
 		resp, err := http.PostForm(eventUrl.(string), params)
 		if err != nil {
 			fmt.Println("Error: ", err, retries)
@@ -54,10 +62,23 @@ send:
 			resp.Body.Close()
 		}
 	}
+	wg.Done()
 }
 
 
 func main() {
+	exitReceived := false
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, syscall.SIGTERM)
+	signal.Notify(c, syscall.SIGKILL)
+	go func() {
+		<-c
+		exitReceived = true
+		wg.Wait()
+		os.Exit(1)
+	}()
+
 server:
 	spec := redis.DefaultSpec()
 	spec.Host(REDIS_HOST).Port(REDIS_PORT)
@@ -85,7 +106,13 @@ server:
 		}
 
 		if res != nil {
+			wg.Add(1)
 			go sendEvent(res[1])
+		}
+
+		if exitReceived == true {
+			wg.Wait()
+			break
 		}
 	}
 }
