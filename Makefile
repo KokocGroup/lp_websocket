@@ -9,8 +9,15 @@ run: kill_server
 
 .PHONY: run-events
 # target: run-events - Run Go development server
-run-events: kill_server
+run-events:
 	@go run events.go
+
+.PHONY: run-supervisor
+# target: run-supervisor - Run Supervisor daemon
+run-supervisor:
+	@ps aux|grep [s]upervisord| awk '{print $2}'|xargs kill -9 >&/dev/null || true
+	@supervisord -c .deploy/supervisor/supervisor-local.ini
+	@rlwrap -D -r -a -- supervisorctl -c .deploy/supervisor/supervisor-local.ini
 
 .PHONY: help
 # target: sync - sync with remote server

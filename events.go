@@ -21,7 +21,7 @@ const (
 	REDIS_DB   = 0
 
 	QUEUE_NAME  = "events"
-	RETRY_AFTER = 180
+	RETRY_AFTER = 60
 	MAX_RETRIES = 3
 )
 
@@ -72,8 +72,10 @@ func main() {
 	signal.Notify(c, os.Interrupt)
 	signal.Notify(c, syscall.SIGTERM)
 	signal.Notify(c, syscall.SIGKILL)
+	signal.Notify(c, syscall.SIGQUIT)
 	go func() {
 		<-c
+		fmt.Println("Restart now")
 		exitReceived = true
 		wg.Wait()
 		os.Exit(1)
