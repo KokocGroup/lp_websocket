@@ -16,12 +16,14 @@ const (
 	REDIS_PASS = ""
 	REDIS_DB = 0
 
+	QUEUE_NAME = "events"
+	RETRY_AFTER = 180
 	MAX_RETRIES = 3
-	RETRY_AFTER = 600
 )
 
-func sendEvent(event_json []byte, retries int8) {
+func sendEvent(event_json []byte) {
 	var event map[string]interface{}
+	retries := 0
 
 	if err := json.Unmarshal(event_json, &event); err != nil {
 		fmt.Println("JSON Error: ", err)
@@ -37,14 +39,14 @@ func sendEvent(event_json []byte, retries int8) {
 		params := url.Values{}
 		params.Add("apiKey", eventApiKey.(string))
 		params.Add("event", eventMessage.(string))
-
+send:
 		resp, err := http.PostForm(eventUrl.(string), params)
 		if err != nil {
 			fmt.Println("Error: ", err, retries)
 			time.Sleep(RETRY_AFTER * time.Second)
 			retries += 1
 			if retries < MAX_RETRIES {
-				go sendEvent(event_json, retries)
+				goto send
 			}
 		} else {
 			ioutil.ReadAll(resp.Body)
@@ -74,7 +76,7 @@ server:
 	var err redis.Error
 
 	for {
-		res, err = client.Brpop("events", 0)
+		res, err = client.Brpop(QUEUE_NAME, 0)
 
 		if err != nil {
 			fmt.Println("Error: ", err)
@@ -82,6 +84,8 @@ server:
 			goto server
 		}
 
-		go sendEvent(res[1], 0)
+		if res != nil {
+			go sendEvent(res[1])
+		}
 	}
 }
