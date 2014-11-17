@@ -94,7 +94,7 @@ send-events:
 .PHONY: echo-server
 # target: echo-server - POST echo event server
 echo-server:
-	@python helpers/echo-server.py
+	@go run helpers/echo-server.go
 
 .PHONY: help
 # target: help - Display callable targets

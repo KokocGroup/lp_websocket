@@ -11,7 +11,7 @@ DATA_STRUCT = {
     "message": "Hello, World!",
     "api_key": "AFAAFASDVZXV"
 }
-QUEUE_RANGE = 10000
+QUEUE_RANGE = 100000
 QUEUE_NAME = "events"
 
 
