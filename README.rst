@@ -1,23 +1,32 @@
-Евент сервер
-------------
+Events server
+-------------
 Входящая структура евентов:
-{
-    "url": "http://127.0.0.1:8080/",
-    "message": "String escaped JSON struct",
-    "api_key": "Remote User ApiKey for security"
-}
+
+.. code-block:: json
+
+    {
+        "url": "http://Plugin.Url",
+        "message": "String escaped JSON struct",
+        "api_key": "Plugin ApiKey"
+    }
 
 Исходящая структура евентов (http POST):
+
+.. code-block:: html
+
     apiKey = string api key
     event = JSON Message
 
 
-Socket сервер
--------------
+WebSocket server
+----------------
 Входящая структура уведомлений:
-{
-    "path": "some path",
-    ... any keys & data ...
-}
+
+.. code-block:: json
+
+    {
+        "path": "some path",
+        ... any keys & data ...
+    }
 
 *все что угодно, но главное необходим ключ path в JSON документе.*
