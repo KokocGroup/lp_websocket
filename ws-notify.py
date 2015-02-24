@@ -31,6 +31,11 @@ logger.setLevel(logging.DEBUG)
 
 ALLOWED_FILTER = r'^[a-zA-Z.*0-9_]+$'
 ALLOWED_PATH = r'^[a-zA-Z.0-9_]+$'
+REPLACE_RULE = (
+    ('*', '([a-zA-Z0-9_]+)'),
+    ('.', '\.'),
+    ('**', '([a-zA-Z0-9_.]+)'),
+)
 
 c = tornadoredis.Client()
 c.connect()
@@ -92,9 +97,8 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
 
     @staticmethod
     def _replace_rule(rule):
-        # rule = rule.replace('**', '([a-zA-Z0-9_.]+)')
-        rule = rule.replace('*', '([a-zA-Z0-9_]+)')
-        rule = rule.replace('.', '\.')
+        for args in REPLACE_RULE:
+            rule = rule.replace(*args)
         return rule
 
     def _compile_rules(self):
