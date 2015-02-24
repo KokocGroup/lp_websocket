@@ -32,8 +32,8 @@ logger.setLevel(logging.DEBUG)
 ALLOWED_FILTER = r'^[a-zA-Z.*0-9_]+$'
 ALLOWED_PATH = r'^[a-zA-Z.0-9_]+$'
 REPLACE_RULE = (
-    ('*', '([a-zA-Z0-9_]+)'),
     ('.', '\.'),
+    ('*', '([a-zA-Z0-9_]+)'),
     ('**', '([a-zA-Z0-9_.]+)'),
 )
 
