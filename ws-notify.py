@@ -99,7 +99,7 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
 
     def _compile_rules(self):
         combined = '|'.join(self.subscribe_filters)
-        self.subscribe_filters_str = '^%s$' % combined
+        self.subscribe_filters_str = '^(%s)$' % combined
 
     def _check_auth(self):
         if not self.is_authorized:
