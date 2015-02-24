@@ -92,7 +92,7 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
 
     @staticmethod
     def _replace_rule(rule):
-        #rule = ''.join(re.findall(r'[a-zA-Z.*0-9_]', rule))
+        # rule = rule.replace('**', '([a-zA-Z0-9_.]+)')
         rule = rule.replace('*', '([a-zA-Z0-9_]+)')
         rule = rule.replace('.', '\.')
         return rule
