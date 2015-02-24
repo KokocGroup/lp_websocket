@@ -113,9 +113,10 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
         if data.get('password') == 12345:
             if data.get('login'):
                 self.subscribe_id = data.get('login')
-                self.is_authorized = True
-                self.listen()
-                return
+                if self.subscribe_id.isdigit():
+                    self.is_authorized = True
+                    self.listen()
+                    return
 
         logger.error('Authorization error')
         self.close()
