@@ -37,6 +37,14 @@ REPLACE_RULE = (
     ('**', '([a-zA-Z0-9_.]+)'),
 )
 
+SESSION_REDIS_HOST = 'lpg-sessions-medium.3yrnqo.0001.euw1.cache.amazonaws.com'
+if options.debug is True:
+    SESSION_REDIS_HOST = 'localhost'
+SESSION_REDIS_PORT = 6379
+SESSION_REDIS_PASS = None
+SESSION_REDIS_DB = 4
+
+
 c = tornadoredis.Client()
 c.connect()
 
@@ -109,11 +117,22 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
         if not self.is_authorized:
             self.close(403, 'Not authorized!')
 
+    @staticmethod
+    def _password_is_valid(password):
+        # todo: check user_id on unserialized session
+        redis = tornadoredis.Client(
+            host=SESSION_REDIS_HOST, port=SESSION_REDIS_PORT,
+            password=SESSION_REDIS_PASS, selected_db=SESSION_REDIS_DB
+        )
+        redis.connect()
+        if redis.get(password) is not None:
+            return True
+
     def authorize(self, data):
-        if data.get('password') == 12345:
-            if data.get('login'):
-                self.subscribe_id = data.get('login')
-                if self.subscribe_id.isdigit():
+        if data.get('login') and data.get('password'):
+            self.subscribe_id = data.get('login')
+            if str(self.subscribe_id).isdigit():
+                if self._password_is_valid(data.get('password')):
                     self.is_authorized = True
                     self.listen()
                     return
@@ -165,12 +184,15 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
             self.close()
 
     def on_message(self, message):
-        message = json.loads(message)
-        action = message.get('action')
-        if action and action in self.allowed_methods:
-            if action != 'authorize':
-                self._check_auth()
-            getattr(self, action)(message)
+        try:
+            message = json.loads(message)
+            action = message.get('action')
+            if action and action in self.allowed_methods:
+                if action != 'authorize':
+                    self._check_auth()
+                getattr(self, action)(message)
+        except ValueError:
+            self.close()
 
     def on_close(self, message=None):
         if self.client and self.client.subscribed:
