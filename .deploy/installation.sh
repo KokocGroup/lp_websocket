@@ -8,7 +8,7 @@ apt-get update && apt-get upgrade -y
 
 apt-get install -y \
     nginx-full git-core ngrep screen bash-completion htop gcc logtop \
-    python-virtualenv ipython pypy supervisor redis-server golang
+    python-virtualenv ipython python-dev pypy supervisor redis-server golang
 
 # For Ubuntu 12.04
 if [ -f /etc/bash_completion.d/git-prompt ]; then ln -sf /etc/bash_completion.d/git-prompt /etc/bash_completion.d/git; fi
