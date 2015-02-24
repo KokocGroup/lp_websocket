@@ -139,6 +139,7 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
     def listen(self):
         self.client = tornadoredis.Client()
         self.client.connect()
+        self._compile_rules()
         yield tornado.gen.Task(self.client.subscribe, str(self.subscribe_id))
         self.client.listen(self.backend_message)
 
@@ -146,8 +147,9 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
         try:
             data = json.loads(json_msg)
             path = data.get('path')
-            if re.match(self.subscribe_filters_str, path):
-                self.write_message(json_msg)
+            if self.subscribe_filters_str:
+                if re.match(self.subscribe_filters_str, path):
+                    self.write_message(json_msg)
         except Exception, e:
             logger.exception(e)
 
