@@ -53,3 +53,5 @@ node_modules/
 aws.py
 .coverage
 .nose*
+*.egg-info
+test.go
