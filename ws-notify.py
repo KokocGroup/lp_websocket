@@ -48,6 +48,12 @@ SESSION_REDIS_DB = 4
 c = tornadoredis.Client()
 c.connect()
 
+session = tornadoredis.Client(
+    host=SESSION_REDIS_HOST, port=SESSION_REDIS_PORT,
+    password=SESSION_REDIS_PASS, selected_db=SESSION_REDIS_DB
+)
+session.connect()
+
 
 class IndexHandler(SentryMixin, tornado.web.RequestHandler):
     def get(self):
@@ -118,14 +124,9 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
             self.close(403, 'Not authorized!')
 
     @staticmethod
-    def _password_is_valid(password):
+    def _password_is_valid(sid):
         # todo: check user_id on unserialized session
-        redis = tornadoredis.Client(
-            host=SESSION_REDIS_HOST, port=SESSION_REDIS_PORT,
-            password=SESSION_REDIS_PASS, selected_db=SESSION_REDIS_DB
-        )
-        redis.connect()
-        if redis.get(password) is not None:
+        if session.get(sid) is not None:
             return True
 
     def authorize(self, data):
