@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    var server_url = "ws://" + window.location.host + "/ws/events/";
+    var server_url = (window.location.protocol == 'https:' ? "wss://" : "ws://") + window.location.host + "/ws/events/";
     var ws = null;
     var message_div = $('#message');
 

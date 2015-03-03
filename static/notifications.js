@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    var server_url = "ws://" + window.location.host + "/ws/";
+    var server_url = (window.location.protocol == 'https:' ? "wss://" : "ws://") + window.location.host + "/ws/";
     var ws = null;
     var status = $('#status');
     var user_id = $('#user_id');
