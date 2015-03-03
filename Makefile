@@ -5,7 +5,7 @@ ENV=`basename "$PWD"`
 .PHONY: run
 # target: run - Run Tornado development server
 run: kill_server
-	@python -m tornado.autoreload ws-notify.py --logging=debug --debug=true
+	@python -m tornado.autoreload ws-notify.py --logging=info --debug=true
 
 .PHONY: run-events
 # target: run-events - Run Go development server

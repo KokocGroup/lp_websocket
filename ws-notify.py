@@ -37,6 +37,7 @@ REPLACE_RULE = (
     ('**', '([a-zA-Z0-9_.]+)'),
 )
 
+parse_command_line()
 SESSION_REDIS_HOST = 'lpg-sessions-medium.3yrnqo.0001.euw1.cache.amazonaws.com'
 if options.debug is True:
     SESSION_REDIS_HOST = 'localhost'
@@ -62,6 +63,7 @@ class IndexHandler(SentryMixin, tornado.web.RequestHandler):
 
 class NotificationHandler(SentryMixin, tornado.web.RequestHandler):
     def get(self):
+        session.set('12345', '1')
         self.render('templates/notification.html')
 
 
@@ -123,17 +125,21 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
         if not self.is_authorized:
             self.close(403, 'Not authorized!')
 
-    @staticmethod
-    def _password_is_valid(sid):
+    @tornado.gen.engine
+    def _password_is_valid(self, sid, callback=None):
         # todo: check user_id on unserialized session
-        if session.get(sid) is not None:
-            return True
+        res = yield tornado.gen.Task(session.get, sid)
+        callback(res)
 
+    @tornado.web.asynchronous
+    @tornado.gen.engine
     def authorize(self, data):
         if data.get('login') and data.get('password'):
             self.subscribe_id = data.get('login')
             if str(self.subscribe_id).isdigit():
-                if self._password_is_valid(data.get('password')):
+                password_is_valid = yield tornado.gen.Task(
+                    self._password_is_valid, data.get('password'))
+                if password_is_valid is not None:
                     self.is_authorized = True
                     self.listen()
                     return
@@ -258,7 +264,6 @@ class Application(tornado.web.Application):
 
 
 if __name__ == '__main__':
-    parse_command_line()
     application = Application()
     application.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
