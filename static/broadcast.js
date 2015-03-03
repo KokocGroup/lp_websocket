@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    var server_url = "http://" + window.location.host + "/broadcast/msg/";
+    var server_url = window.location.origin + "/broadcast/msg/";
     var status = $('#status');
 
     var notify = function (msg) {
