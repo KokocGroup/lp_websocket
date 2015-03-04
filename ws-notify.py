@@ -45,9 +45,19 @@ SESSION_REDIS_PORT = 6379
 SESSION_REDIS_PASS = None
 SESSION_REDIS_DB = 4
 
+WS_REDIS_HOST = 'lpg-sessions-medium.3yrnqo.0001.euw1.cache.amazonaws.com'
+if options.debug is True:
+    WS_REDIS_HOST = 'localhost'
+WS_REDIS_PORT = 6379
+WS_REDIS_PASS = None
+WS_REDIS_DB = 4
 
-c = tornadoredis.Client()
-c.connect()
+
+ws = tornadoredis.Client(
+    host=WS_REDIS_HOST, port=WS_REDIS_PORT,
+    password=WS_REDIS_PASS, selected_db=WS_REDIS_DB
+)
+ws.connect()
 
 session = tornadoredis.Client(
     host=SESSION_REDIS_HOST, port=SESSION_REDIS_PORT,
@@ -87,7 +97,7 @@ class BroadcastMessageHandler(SentryMixin, tornado.web.RequestHandler):
                 data = json.loads(message)
                 if isinstance(data, dict) and data.get('path'):
                     if re.match(ALLOWED_PATH, data.get('path')):
-                        c.publish(user_id, message)
+                        ws.publish(user_id, message)
                         self.set_header('Content-Type', 'text/plain')
                         self.write('OK')
                         return
@@ -168,7 +178,10 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
 
     @tornado.gen.engine
     def listen(self):
-        self.client = tornadoredis.Client()
+        self.client = tornadoredis.Client(
+            host=WS_REDIS_HOST, port=WS_REDIS_PORT,
+            password=WS_REDIS_PASS, selected_db=WS_REDIS_DB
+        )
         self.client.connect()
         self._compile_rules()
         yield tornado.gen.Task(self.client.subscribe, str(self.subscribe_id))
