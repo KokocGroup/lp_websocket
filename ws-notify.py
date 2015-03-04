@@ -45,7 +45,7 @@ SESSION_REDIS_PORT = 6379
 SESSION_REDIS_PASS = None
 SESSION_REDIS_DB = 4
 
-WS_REDIS_HOST = 'lpg-sessions-medium.3yrnqo.0001.euw1.cache.amazonaws.com'
+WS_REDIS_HOST = 'lpg-ws.3yrnqo.0001.euw1.cache.amazonaws.com'
 if options.debug is True:
     WS_REDIS_HOST = 'localhost'
 WS_REDIS_PORT = 6379
