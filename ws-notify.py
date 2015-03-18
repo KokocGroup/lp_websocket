@@ -232,7 +232,10 @@ class WSAllHandler(SentryMixin, tornado.websocket.WebSocketHandler):
 
     @tornado.gen.engine
     def listen(self):
-        self.client = tornadoredis.Client()
+        self.client = tornadoredis.Client(
+            host=WS_REDIS_HOST, port=WS_REDIS_PORT,
+            password=WS_REDIS_PASS, selected_db=WS_REDIS_DB
+        )
         self.client.connect()
         yield tornado.gen.Task(self.client.psubscribe, '*')
         self.client.listen(self.backend_message)
