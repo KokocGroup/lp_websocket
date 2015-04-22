@@ -18,7 +18,7 @@ const (
 	REDIS_HOST = "127.0.0.1"
 	REDIS_PORT = 6379
 	REDIS_PASS = ""
-	REDIS_DB   = 0
+	REDIS_DB   = 4
 
 	QUEUE_NAME  = "events"
 	RETRY_AFTER = 60

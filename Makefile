@@ -2,6 +2,16 @@ ARGS=$(filter-out $@,$(MAKECMDGOALS))
 BRANCH=`git rev-parse --abbrev-ref HEAD`
 ENV=`basename "$PWD"`
 
+
+.PHONY: install
+# target: install events daemon
+install:
+	@go get github.com/alphazero/Go-Redis
+	@ln -s $GOPATH/src/github.com/alphazero/Go-Redis $GOPATH/src/redis
+	@go build events.go
+	@mv ./events /usr/bin/lpg-events
+	@echo "Done"
+
 .PHONY: run
 # target: run - Run Tornado development server
 run: kill_server

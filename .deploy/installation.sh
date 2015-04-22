@@ -8,7 +8,16 @@ apt-get update && apt-get upgrade -y
 
 apt-get install -y \
     nginx-full git-core ngrep screen bash-completion htop gcc logtop \
-    python-virtualenv ipython python-dev pypy supervisor redis-server golang
+    python-virtualenv ipython python-dev pypy supervisor redis-server \
+    golang golang-go golang-go.tools gccgo-go mercurial
+
+cat >> ~/.bashrc << END
+export GOROOT=/usr/lib/go
+export GOPATH=\$HOME/go
+export PATH=\$PATH:\$GOROOT/bin:\$GOPATH/bin
+END
+source ~/.bashrc
+pkill -9 lpg-events; rm -rf /usr/bin/lpg-events; make install
 
 # For Ubuntu 12.04
 if [ -f /etc/bash_completion.d/git-prompt ]; then ln -sf /etc/bash_completion.d/git-prompt /etc/bash_completion.d/git; fi

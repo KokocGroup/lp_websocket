@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#!-*- coding: utf-8 -*-
+# !-*- coding: utf-8 -*-
 
 __author__ = 'gotlium'
 
@@ -28,7 +28,6 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.DEBUG)
 
-
 ALLOWED_FILTER = r'^[a-zA-Z.*0-9_]+$'
 ALLOWED_PATH = r'^[a-zA-Z.0-9_]+$'
 REPLACE_RULE = (
@@ -51,7 +50,6 @@ if options.debug is True:
 WS_REDIS_PORT = 6379
 WS_REDIS_PASS = None
 WS_REDIS_DB = 4
-
 
 ws = tornadoredis.Client(
     host=WS_REDIS_HOST, port=WS_REDIS_PORT,
