@@ -29,11 +29,6 @@ run-supervisor:
 	@supervisord -c .deploy/supervisor/supervisor-local.ini
 	@rlwrap -D -r -a -- supervisorctl -c .deploy/supervisor/supervisor-local.ini
 
-.PHONY: help
-# target: sync - sync with remote server
-sync:
-	@rsync -auv ../ws-notify/ root@5.9.106.21:/srv/projects/notify.lpgenerator.ru/www/
-
 .PHONY: vagrant-up
 # target: vagrant-up - Start Vagrant
 vagrant-up:
@@ -52,14 +47,6 @@ vagrant-down:
 # target: vagrant-destroy - Destroy Vagrant Files
 vagrant-destroy:
 	@vagrant destroy -f
-
-.PHONY: vagrant-browser
-# target: vagrant-browser - Open all what you need for development
-vagrant-browser:
-	@open http://vagrant.lpgenerator.ru/ || xdg-open http://vagrant.lpgenerator.ru/
-	@open http://vagrant.lpgenerator.ru:1080/ || xdg-open http://vagrant.lpgenerator.ru:1080/
-	@open http://vagrant.lpgenerator.ru:5555/ || xdg-open http://vagrant.lpgenerator.ru:5555/
-	@open http://vagrant.lpgenerator.ru:9999/ || xdg-open http://vagrant.lpgenerator.ru:9999/
 
 .PHONY: pull
 # target: pull - Git pull origin CURRENT-BRANCH
