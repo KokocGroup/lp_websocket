@@ -3,8 +3,8 @@
 
 # Options {{{
 #
-APP_HOST = "#{ENV['VM_HOST'] || '44.44.44.44'}"
-APP_HOST_NAME = "#{ENV['VM_HOST_NAME'] || 'vagrant.lpgenerator.ru'}"
+APP_HOST = "#{ENV['VM_HOST'] || '44.44.44.45'}"
+APP_HOST_NAME = "#{ENV['VM_HOST_NAME'] || 'ws.lpgenerator.ru'}"
 APP_VM_NAME = "#{ENV['VM_NAME'] || 'lpg-ws'}"
 APP_MEMORY = "#{ENV['VM_MEMORY'] || '1024'}"
 APP_CPUS = "#{ENV['VM_CPUS'] || '1'}"
@@ -18,7 +18,7 @@ Vagrant.configure("2") do |config|
 
     config.vm.box = "ubuntu/trusty64"
     config.vm.box_check_update = true
-    config.vm.post_up_message = "Box URL is http://vagrant.lpgenerator.ru/"
+    config.vm.post_up_message = "Box URL is http://ws.lpgenerator.ru/"
 
     config.vm.synced_folder "./", "/vagrant", id: "vagrant-root"
 
