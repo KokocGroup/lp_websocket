@@ -37,14 +37,14 @@ REPLACE_RULE = (
 )
 
 parse_command_line()
-SESSION_REDIS_HOST = 'lpg-sessions-medium.3yrnqo.0001.euw1.cache.amazonaws.com'
+SESSION_REDIS_HOST = 'sessions.tst-1.dc-1.dlp3001.ru'
 if options.debug is True:
     SESSION_REDIS_HOST = 'localhost'
 SESSION_REDIS_PORT = 6379
 SESSION_REDIS_PASS = None
 SESSION_REDIS_DB = 4
 
-WS_REDIS_HOST = 'lpg-ws.3yrnqo.0001.euw1.cache.amazonaws.com'
+WS_REDIS_HOST = 'websocket.tst-1.dc-1.dlp3001.ru'
 if options.debug is True:
     WS_REDIS_HOST = 'localhost'
 WS_REDIS_PORT = 6379
@@ -255,8 +255,8 @@ class WSAllHandler(SentryMixin, tornado.websocket.WebSocketHandler):
 class Application(tornado.web.Application):
     def __init__(self):
         self.sentry_client = AsyncSentryClient(
-            'https://7580dade6193484aa40a8e9b2310d33c:'
-            'b902376279f5481eb3a0420d669b4f9b@app.getsentry.com/33177'
+            'http://7276697d95364bc891f8dbe202be7fa2:'
+            'c31687ea6d9b4575ba974c202a9755bd@sentry.lpgenerator.ru/9'
         )
         handlers = (
             (r'/', IndexHandler),
