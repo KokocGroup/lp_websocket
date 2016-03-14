@@ -53,7 +53,7 @@ vagrant-destroy:
 pull: clean
 	@git pull origin `git rev-parse --abbrev-ref HEAD`
 	@git log --name-only -1|grep migrations >& /dev/null && ./manage.py migrate --noinput || true
-	@test -f touch.reload && touch touch.reload || true
+	@test -d logs/ && /usr/bin/supervisorctl restart all
 
 .PHONY: push
 # target: push - Git push origin CURRENT-BRANCH
