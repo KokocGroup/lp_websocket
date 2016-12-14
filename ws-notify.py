@@ -110,6 +110,8 @@ class BroadcastMessageHandler(SentryMixin, tornado.web.RequestHandler):
 
 
 class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
+    ALL_CHANNEL_NAME = 'all'
+
     def __init__(self, *args, **kwargs):
         self.client = None
         self.is_authorized = True
@@ -184,7 +186,10 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
         )
         self.client.connect()
         self._compile_rules()
-        yield tornado.gen.Task(self.client.subscribe, str(self.subscribe_id))
+
+        channels_to_subscribe = [str(self.subscribe_id), self.ALL_CHANNEL_NAME]
+        yield tornado.gen.Task(self.client.subscribe, channels_to_subscribe)
+
         self.client.listen(self.backend_message)
 
     def dispatch_backend_message(self, json_msg):
