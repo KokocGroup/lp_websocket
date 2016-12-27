@@ -262,8 +262,8 @@ class WSAllHandler(SentryMixin, tornado.websocket.WebSocketHandler):
 class Application(tornado.web.Application):
     def __init__(self):
         self.sentry_client = AsyncSentryClient(
-            'http://7276697d95364bc891f8dbe202be7fa2:'
-            'c31687ea6d9b4575ba974c202a9755bd@sentry.lpgenerator.ru/9'
+            'http://b40f515d604040a0952b14ebab2b084a:'
+            '48a30b105ac54d59bc1081c79effe4fa@sentry.lpgenerator.ru/9'
         )
         handlers = (
             (r'/', IndexHandler),
