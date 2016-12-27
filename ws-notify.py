@@ -16,6 +16,7 @@ from raven.contrib.tornado import AsyncSentryClient
 from raven.contrib.tornado import SentryMixin
 
 import tornadoredis
+from tornadoredis.exceptions import ConnectionError
 
 
 define("port", default=8888, help="run on the given port", type=int)
@@ -53,12 +54,6 @@ WS_REDIS_PORT = 6379
 WS_REDIS_PASS = None
 WS_REDIS_DB = 4
 
-ws = tornadoredis.Client(
-    host=WS_REDIS_HOST, port=WS_REDIS_PORT,
-    password=WS_REDIS_PASS, selected_db=WS_REDIS_DB
-)
-ws.connect()
-
 session = tornadoredis.Client(
     host=SESSION_REDIS_HOST, port=SESSION_REDIS_PORT,
     password=SESSION_REDIS_PASS, selected_db=SESSION_REDIS_DB
@@ -88,6 +83,15 @@ class BroadcastHandler(SentryMixin, tornado.web.RequestHandler):
 
 
 class BroadcastMessageHandler(SentryMixin, tornado.web.RequestHandler):
+    def __init__(self, *args, **kwargs):
+        self.client = tornadoredis.Client(
+            host=WS_REDIS_HOST, port=WS_REDIS_PORT,
+            password=WS_REDIS_PASS, selected_db=WS_REDIS_DB
+        )
+        self.client.connect()
+
+        super(BroadcastMessageHandler, self).__init__(*args, **kwargs)
+
     def post(self):
         message = self.get_argument('message')
         user_id = str(self.get_argument('user'))
@@ -97,7 +101,7 @@ class BroadcastMessageHandler(SentryMixin, tornado.web.RequestHandler):
                 data = json.loads(message)
                 if isinstance(data, dict) and data.get('path'):
                     if re.match(ALLOWED_PATH, data.get('path')):
-                        ws.publish(user_id, message)
+                        self.client.publish(user_id, message)
                         self.set_header('Content-Type', 'text/plain')
                         self.write('OK')
                         return
@@ -184,13 +188,16 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
             host=WS_REDIS_HOST, port=WS_REDIS_PORT,
             password=WS_REDIS_PASS, selected_db=WS_REDIS_DB
         )
-        self.client.connect()
-        self._compile_rules()
+        try:
+            self.client.connect()
+            self._compile_rules()
 
-        channels_to_subscribe = [str(self.subscribe_id), self.ALL_CHANNEL_NAME]
-        yield tornado.gen.Task(self.client.subscribe, channels_to_subscribe)
+            channels_to_subscribe = [str(self.subscribe_id), self.ALL_CHANNEL_NAME]
+            yield tornado.gen.Task(self.client.subscribe, channels_to_subscribe)
 
-        self.client.listen(self.backend_message)
+            self.client.listen(self.backend_message)
+        except ConnectionError:
+            self.close()
 
     def dispatch_backend_message(self, json_msg):
         try:
