@@ -33,8 +33,8 @@ ALLOWED_FILTER = r'^[a-zA-Z.*0-9_]+$'
 ALLOWED_PATH = r'^[a-zA-Z.0-9_]+$'
 REPLACE_RULE = (
     ('.', '\.'),
-    ('*', u'([а-яА-Яa-zA-Z0-9_]+)'),
-    ('**', u'([а-яА-Яa-zA-Z0-9_.]+)'),
+    ('*', u'([а-яА-Яa-zA-Z0-9_-]+)'),
+    ('**', u'([а-яА-Яa-zA-Z0-9_.-]+)'),
 )
 
 parse_command_line()
