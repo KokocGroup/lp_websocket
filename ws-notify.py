@@ -21,6 +21,10 @@ from tornadoredis.exceptions import ConnectionError
 
 define("port", default=8888, help="run on the given port", type=int)
 define("debug", default=False, help="run in debug mode")
+define("session_host" , default = "10.50.51.83", help="SESSION_REDIS_HOST", group="General")
+define("session_db" , default = 4, help="SESSION_REDIS_DB", group="General", type=int)
+define("ws_host" , default = "10.50.51.103", help="WS_REDIS_HOST", group="General")
+define("ws_db" , default = 4, help="WS_REDIS_DB", group="General", type=int)
 
 logger = logging.getLogger('ws_notify')
 handler = logging.FileHandler('/tmp/ws-notify.log')
@@ -39,20 +43,20 @@ REPLACE_RULE = (
 
 parse_command_line()
 # SESSION_REDIS_HOST = 'sessions.mem.dlp3001.ru'
-SESSION_REDIS_HOST = '10.50.51.83'
+SESSION_REDIS_HOST = options.session_host
 if options.debug is True:
     SESSION_REDIS_HOST = 'localhost'
 SESSION_REDIS_PORT = 6379
 SESSION_REDIS_PASS = None
-SESSION_REDIS_DB = 4
+SESSION_REDIS_DB = options.session_db
 
 # WS_REDIS_HOST = 'websocket.mem.dlp3001.ru'
-WS_REDIS_HOST = '10.50.51.103'
+WS_REDIS_HOST = options.ws_host
 if options.debug is True:
     WS_REDIS_HOST = 'localhost'
 WS_REDIS_PORT = 6379
 WS_REDIS_PASS = None
-WS_REDIS_DB = 4
+WS_REDIS_DB = options.ws_db
 
 session = tornadoredis.Client(
     host=SESSION_REDIS_HOST, port=SESSION_REDIS_PORT,
