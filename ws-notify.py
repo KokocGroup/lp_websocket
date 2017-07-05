@@ -148,8 +148,11 @@ class WSHandler(SentryMixin, tornado.websocket.WebSocketHandler):
     @tornado.gen.engine
     def _password_is_valid(self, sid, callback=None):
         # todo: check user_id on unserialized session
-        res = yield tornado.gen.Task(session.get, sid)
-        callback(res)
+        try:
+            res = yield tornado.gen.Task(session.get, sid)
+            callback(res)
+        except:
+            pass
 
     @tornado.web.asynchronous
     @tornado.gen.engine
