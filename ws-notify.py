@@ -45,7 +45,7 @@ parse_command_line()
 # SESSION_REDIS_HOST = 'sessions.mem.dlp3001.ru'
 SESSION_REDIS_HOST = options.session_host
 if options.debug is True:
-    SESSION_REDIS_HOST = 'localhost'
+    SESSION_REDIS_HOST = 'local-lpg--redis'
 SESSION_REDIS_PORT = 6379
 SESSION_REDIS_PASS = None
 SESSION_REDIS_DB = options.session_db
@@ -53,7 +53,7 @@ SESSION_REDIS_DB = options.session_db
 # WS_REDIS_HOST = 'websocket.mem.dlp3001.ru'
 WS_REDIS_HOST = options.ws_host
 if options.debug is True:
-    WS_REDIS_HOST = 'localhost'
+    WS_REDIS_HOST = 'local-lpg--redis'
 WS_REDIS_PORT = 6379
 WS_REDIS_PASS = None
 WS_REDIS_DB = options.ws_db
